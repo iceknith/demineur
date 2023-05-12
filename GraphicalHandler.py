@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 from case import Case
 import gameLogic as gl
 
@@ -7,6 +6,8 @@ jeu_montre=[]
 
 image_drapeau = None
 image_case_cachee = None
+image_bombe = None
+image_bombe_active = None
 image_cases_decouvertes = []
 
 firstClick = True
@@ -20,13 +21,15 @@ gRoot = None
 mouseX = 0
 mouseY = 0
 
+gameContinue = True
+
 def mouse_movement(event):
     global mouseX, mouseY, image_cases_decouvertes
     mouseX = event.x
     mouseY = event.y
 
 def left_click(event):
-    global canvas, gRoot, settings, firstClick, drapeauDispo, nombreCases
+    global canvas, gRoot, settings, firstClick, drapeauDispo, nombreCases, gameContinue, image_bombe, image_bombe_active
 
     if jeu_montre[mouseY//32][mouseX//32].estDecouverte: return
 
@@ -60,35 +63,21 @@ def left_click(event):
             c.hasDrapeau = False    
 
         nombreCases += len(affichage)
-        if nombreCases >= nombreCasesMax:
-
-            messagebox.askretrycancel(title="Recommencer ?", message="Vous venez de gagner la partie,\n voulez-vous recommencer ?")
-            gRoot.unbind("<Motion>")
-            gRoot.unbind("<Button-1>")
-            gRoot.unbind("<Button-3>")
-
+        
     else:
-
-        bombe=tk.PhotoImage(file="images/Bombe.png").zoom(2,2)
-        bombe_active=tk.PhotoImage(file="images/Bombe_active.png").zoom(2,2)
 
         for line in gl.jeu_cache:
             for case in line:
                 c=jeu_montre[case.y][case.x]
                 canvas.delete(c.image)
                 if case.isBombe:
-                    c.set_image(canvas.create_image((c.x*32+16, c.y*32+16), image = bombe))
+                    c.set_image(canvas.create_image((c.x*32+16, c.y*32+16), image = image_bombe))
                 else:
                     c.set_image(canvas.create_image((c.x*32+16, c.y*32+16), image = image_cases_decouvertes[case.nombre]))
         case = jeu_montre[mouseY//32][mouseX//32]
-        case.set_image(canvas.create_image((case.x*32+16, case.y*32+16), image = bombe_active))
-
-        messagebox.askretrycancel(title="Recommencer ?", message="Vous venez de perdre la partie,\n voulez-vous recommencer ?")
-        gRoot.unbind("<Motion>")
-        gRoot.unbind("<Button-1>")
-        gRoot.unbind("<Button-3>")
-
-    canvas.mainloop()
+        case.set_image(canvas.create_image((case.x*32+16, case.y*32+16), image = image_bombe_active))
+        
+        gameContinue = False
 
 def right_click(event):
     global mouseX, mouseY, jeu_montre, image_drapeau, drapeauDispo
@@ -101,9 +90,13 @@ def right_click(event):
         canvas.delete(c.image)
         c.set_image(canvas.create_image((c.x*32+16, c.y*32+16), image = image_drapeau))
         c.hasDrapeau = True
-    
+
+def continuer():
+    return gameContinue and nombreCases < nombreCasesMax
+
 def initialisation(longueur, hauteur, nombre_bombe, root):
-    global jeu_montre, canvas, gRoot, image_case_decouverte, image_drapeau, image_case_cachee, settings, firstClick, drapeauDispo, nombreCases, nombreCasesMax
+    global jeu_montre, canvas, gRoot, image_case_decouverte, image_drapeau, image_case_cachee, image_bombe, image_bombe_active, \
+        settings, firstClick, drapeauDispo, nombreCases, nombreCasesMax, gameContinue
     
     gRoot=root
     for i in range(0,9):
@@ -111,32 +104,32 @@ def initialisation(longueur, hauteur, nombre_bombe, root):
 
     image_case_cachee = tk.PhotoImage(file='images/NonDecouverte.png').zoom(2,2)
     image_drapeau = tk.PhotoImage(file='images/Drapeau.png').zoom(2,2)
+    image_bombe=tk.PhotoImage(file="images/Bombe.png").zoom(2,2)
+    image_bombe_active=tk.PhotoImage(file="images/Bombe_active.png").zoom(2,2)
     
     firstClick = True
+    gameContinue = True
     settings = [longueur, hauteur, nombre_bombe]
     drapeauDispo = nombre_bombe
     nombreCases = 0
     nombreCasesMax = longueur*hauteur - nombre_bombe
     
-    root.geometry(f'{longueur*32+50}x{hauteur*32+50}')
+    root.geometry(f'{longueur*32}x{hauteur*32}')
 
     canvas = tk.Canvas(root, width=longueur*32, height=hauteur*32, bg='white')
     canvas.pack(anchor=tk.CENTER, expand=True)
     
     root.bind("<Motion>",mouse_movement)
-    root.bind('<Button-1>', left_click)
     root.bind('<Button-3>', right_click)
     
-
     for y in range(hauteur):
         jeu_montre.append([])
         for x in range(longueur):
             
             jeu_montre[-1].append(Case(x, y, image = canvas.create_image((x*32+16, y*32+16), image = image_case_cachee)))
-            
-    root.mainloop()
     
 if __name__ == "__main__":
     root = tk.Tk()
     root.title('Canvas Demo')
     initialisation(20, 20, 5, root)
+    root.mainloop()
