@@ -7,7 +7,7 @@ def affiche_jeu_cache():
     for l in jeu_cache:
         print(*[str(c) for c in l])
 
-def initialisation(longueur : int, hauteur : int, nombre_de_bombe : int) -> None:
+def initialisation(longueur : int, hauteur : int, nombre_de_bombe : int, safeX : int, safeY : int) -> None:
     global jeu_cache
     
     jeu_cache = []
@@ -22,9 +22,11 @@ def initialisation(longueur : int, hauteur : int, nombre_de_bombe : int) -> None
         x = randrange(0,longueur)
         y = randrange(0,hauteur)
         
-        while jeu_cache[y][x].isBombe:
+        while jeu_cache[y][x].isBombe or (-1 <= safeX - x <= 1  and -1 <= safeY - y <= 1):
+
             x = randrange(0,longueur)
             y = randrange(0,hauteur)
+
             
         jeu_cache[y][x].isBombe = True
         
@@ -42,7 +44,7 @@ def interraction(x : int, y : int):
     
     assert x >= 0 and x < len(jeu_cache[0]), "X position out of bounds"
     assert y >= 0 and y < len(jeu_cache), "Y position out of bounds"
-    
+
     if jeu_cache[y][x].isBombe:
         return False
     
@@ -69,11 +71,9 @@ def interraction(x : int, y : int):
     
     
 if __name__ == "__main__":
-    initialisation(10,10,10)
+    initialisation(10,10,20, 5, 5)
     affiche_jeu_cache()
-    x = int(input("x"))
-    y = int(input("y"))
-    l = interraction(x,y)
+    l = interraction(5,5)
     
     for c in l:
         jeu_cache[c.y][c.x].hasDrapeau = True
