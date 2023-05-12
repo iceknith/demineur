@@ -32,6 +32,8 @@ def left_click(event):
     global canvas, gRoot, settings, firstClick, drapeauDispo, nombreCases, gameContinue, image_bombe, image_bombe_active
 
     if jeu_montre[mouseY//32][mouseX//32].estDecouverte: return
+    
+    print("ici")
 
     if jeu_montre[mouseY//32][mouseX//32].hasDrapeau:
         
@@ -122,6 +124,7 @@ def initialisation(longueur, hauteur, nombre_bombe, root):
     root.bind("<Motion>",mouse_movement)
     root.bind('<Button-3>', right_click)
     
+    jeu_montre = []
     for y in range(hauteur):
         jeu_montre.append([])
         for x in range(longueur):
